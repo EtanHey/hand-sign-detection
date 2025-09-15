@@ -1,29 +1,64 @@
 ---
-title: ML Model Inference
-emoji: 🚀
+title: Hand Detection API
+emoji: 🤚
 colorFrom: blue
-colorTo: green
+colorTo: purple
 sdk: gradio
-sdk_version: 4.0.0
+sdk_version: 4.44.1
 app_file: app.py
-pinned: false
+pinned: true
 models:
-  - yolov8n
+  - EtanHey/hand-sign-detection
 ---
 
-# ML Model Inference Platform
+# Hand/Arm Detection API
 
-Deploy and test your machine learning models on Hugging Face Spaces.
+This Space provides both a Gradio UI and API endpoints for hand/arm detection.
 
 ## Features
-- Image Classification
-- Object Detection (YOLO)
-- Text Classification
-- Multi-model support
+- 96.3% accuracy
+- Real-time detection
+- API endpoints for programmatic access
+- Three classes: hand, arm, not_hand
 
-## Configuration
+## API Usage
 
-Set these environment variables in your Space settings:
-- `MODEL_TYPE`: Type of model (pytorch, yolo, transformers)
-- `MODEL_PATH`: Path to model file
-- `HF_MODEL_ID`: Hugging Face model ID (optional)
+### REST API Endpoint
+```python
+import requests
+
+# File upload
+response = requests.post(
+    "https://etanhey-hand-detection-api.hf.space/api/predict",
+    files={"file": open("image.jpg", "rb")}
+)
+print(response.json())
+
+# Base64 image
+import base64
+
+with open("image.jpg", "rb") as f:
+    image_base64 = base64.b64encode(f.read()).decode()
+
+response = requests.post(
+    "https://etanhey-hand-detection-api.hf.space/api/predict/base64",
+    json={"image": image_base64}
+)
+print(response.json())
+```
+
+## Response Format
+```json
+{
+  "class": "hand",
+  "confidence": 0.963,
+  "probabilities": {
+    "hand": 0.963,
+    "arm": 0.025,
+    "not_hand": 0.012
+  }
+}
+```
+
+## Model
+View the model: [EtanHey/hand-sign-detection](https://huggingface.co/EtanHey/hand-sign-detection)
