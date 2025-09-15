@@ -9,20 +9,11 @@ from ultralytics import YOLO
 import numpy as np
 from PIL import Image
 import json
-import base64
-from io import BytesIO
 from typing import Dict, Tuple, Any
 import logging
-from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse
-import uvicorn
-from threading import Thread
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# Initialize FastAPI app for API endpoints
-app = FastAPI(title="Hand Detection API")
 
 # Load the model
 MODEL_PATH = "https://huggingface.co/EtanHey/hand-sign-detection/resolve/main/model.pt"
@@ -149,52 +140,13 @@ def gradio_predict(image: Image.Image) -> Tuple[str, Dict, str]:
 
     return output_text, confidence_scores, json_output
 
-# FastAPI endpoints for API access
-@app.get("/")
-async def root():
-    """Health check endpoint"""
-    return {
-        "status": "online",
-        "model": "hand-sign-detection",
-        "classes": CLASS_NAMES,
-        "api_endpoints": {
-            "health": "/",
-            "predict": "/api/predict",
-            "predict_base64": "/api/predict/base64"
-        }
-    }
+# API prediction function for Gradio's built-in API
+def api_predict(image: Image.Image) -> Dict[str, Any]:
+    """API function that returns raw results for API access"""
+    if image is None:
+        return {"error": "No image provided"}
 
-@app.post("/api/predict")
-async def predict_api(file: UploadFile = File(...)):
-    """API endpoint for file upload prediction"""
-    try:
-        # Read image
-        contents = await file.read()
-        image = Image.open(BytesIO(contents))
-
-        # Process
-        result = process_image(image)
-
-        return JSONResponse(content=result)
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-@app.post("/api/predict/base64")
-async def predict_base64_api(data: Dict[str, str]):
-    """API endpoint for base64 image prediction"""
-    try:
-        # Decode base64 image
-        image_data = base64.b64decode(data["image"])
-        image = Image.open(BytesIO(image_data))
-
-        # Process
-        result = process_image(image)
-
-        return JSONResponse(content=result)
-
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return process_image(image)
 
 # Gradio Interface
 def create_gradio_interface():
@@ -239,7 +191,7 @@ def create_gradio_interface():
 
         **Model:** YOLOv8 trained on 1,740 images | **Accuracy:** 96.3%
 
-        **API Access:** Use the `/api/predict` endpoint for programmatic access.
+        **API Access:** Use Gradio's built-in API endpoints for programmatic access.
         """,
         article="""
         ### About
@@ -250,14 +202,17 @@ def create_gradio_interface():
 
         ### API Usage
         ```python
-        import requests
+        from gradio_client import Client
 
-        # Upload file
-        response = requests.post(
-            "https://huggingface.co/spaces/EtanHey/hand-detection/api/predict",
-            files={"file": open("image.jpg", "rb")}
+        # Connect to the API
+        client = Client("https://huggingface.co/spaces/EtanHey/hand-detection-api")
+
+        # Make prediction
+        result = client.predict(
+            image="path/to/your/image.jpg",
+            api_name="/predict"
         )
-        print(response.json())
+        print(result)
         ```
 
         ### Model Card
@@ -271,21 +226,29 @@ def create_gradio_interface():
 
     return interface
 
-# Run FastAPI in background thread
-def run_api():
-    """Run FastAPI server in background"""
-    uvicorn.run(app, host="0.0.0.0", port=7860)
-
-# Start API server in background
-api_thread = Thread(target=run_api, daemon=True)
-api_thread.start()
-
 # Create and launch Gradio interface
 if __name__ == "__main__":
+    # Create the main interface
     interface = create_gradio_interface()
-    interface.launch(
+
+    # Create API interface for programmatic access
+    api_interface = gr.Interface(
+        fn=api_predict,
+        inputs=gr.Image(type="pil"),
+        outputs=gr.JSON(),
+        title="Hand Detection API"
+    )
+
+    # Combine both interfaces in a tabbed interface
+    demo = gr.TabbedInterface(
+        [interface, api_interface],
+        ["Web Interface", "API"],
+        title="🤚 Hand/Arm Detection AI"
+    )
+
+    # Launch on default HuggingFace Spaces port (7860)
+    demo.launch(
         server_name="0.0.0.0",
-        server_port=7861,  # Different port for Gradio
-        share=False,
-        debug=True
+        server_port=7860,
+        share=False
     )
