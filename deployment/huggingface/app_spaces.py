@@ -163,14 +163,7 @@ def create_gradio_interface():
     }
     """
 
-    # Example images
-    examples = [
-        ["examples/hand_example.jpg"],
-        ["examples/arm_example.jpg"],
-        ["examples/face_example.jpg"]
-    ]
-
-    # Create interface
+    # Create interface (no examples to avoid file errors)
     interface = gr.Interface(
         fn=gradio_predict,
         inputs=[
@@ -218,8 +211,6 @@ def create_gradio_interface():
         ### Model Card
         View the full model details at [HuggingFace Model Hub](https://huggingface.co/EtanHey/hand-sign-detection)
         """,
-        examples=examples if examples else None,
-        cache_examples=True,
         css=custom_css,
         theme=gr.themes.Soft()
     )
