@@ -1,76 +1,124 @@
-# Hand Sign Detection Training Pipeline
+# Hand Sign Detection Project 🖐️
 
-A machine learning training pipeline for detecting and classifying hand signs using computer vision models.
+A computer vision project for detecting hands and recognizing hand gestures using YOLO.
 
-## Features
+## Project Overview
 
-- 🔄 **Model Agnostic**: Easy switching between YOLO, TensorFlow, PyTorch models
-- 🚀 **Multiple Deployment Options**: Support for Hugging Face and RunPod
-- 📦 **TypeScript Integration**: Browser-based inference with TensorFlow.js/Transformers.js
-- 🐍 **Python Training**: Robust training pipeline with popular ML frameworks
-- 🔧 **Automation**: CI/CD pipelines for training and deployment
-- 📊 **Version Control**: Track models, datasets, and experiments
+This project implements a two-phase approach:
+1. **Phase 1**: Hand detection - Detect hands in images
+2. **Phase 2**: Gesture recognition - Classify specific hand gestures (👌, 👍, ✌️, etc.)
+
+## Quick Start
+
+### 1. Collect Training Data
+
+```bash
+# Start interactive data collection
+python collect_data.py
+
+# Check collected data statistics
+python collect_data.py --stats
+```
+
+Collect 50-100 images per gesture with varied:
+- Hand positions and angles
+- Distances from camera
+- Lighting conditions
+- Backgrounds
+
+### 2. Train Models
+
+```bash
+# Phase 1: Train hand detector
+python train_hand_detector.py hand --epochs 30
+
+# Phase 2: Train gesture classifier (after hand detector is ready)
+python train_hand_detector.py gesture --epochs 50
+
+# Or train both phases
+python train_hand_detector.py both
+```
+
+### 3. Deploy to Hugging Face
+
+The project includes a ready-to-deploy Gradio app for Hugging Face Spaces:
+
+1. Create a new Space on [Hugging Face](https://huggingface.co/spaces)
+2. Upload your trained models to `models/` directory
+3. Copy `deployment/huggingface/` contents to your Space
+4. The app will automatically load your models
 
 ## Project Structure
 
 ```
-ml-training-pipeline/
-├── training/               # Python training code
-│   ├── models/            # Model implementations
-│   ├── datasets/          # Dataset handling
-│   └── configs/           # Training configurations
-├── inference/             # TypeScript/JS inference
-│   ├── browser/          # Browser-based inference
-│   └── server/           # Node.js server
-├── deployment/            # Deployment configurations
-│   ├── huggingface/      # HF deployment configs
-│   └── runpod/           # RunPod deployment configs
-├── automation/            # Automation scripts
-└── experiments/           # Experiment tracking
+hand-sign-detection/
+├── collect_data.py           # Webcam data collection tool
+├── train_hand_detector.py    # Training pipeline
+├── models/                   # Trained models (auto-created)
+│   ├── hand_detector_v1.pt
+│   └── gesture_classifier_v1.pt
+├── data/                     # Training data
+│   └── raw/                  # Collected images organized by gesture
+│       ├── ok/
+│       ├── thumbs_up/
+│       ├── peace/
+│       └── ...
+├── deployment/
+│   └── huggingface/         # Hugging Face deployment
+│       ├── app.py           # Gradio interface
+│       └── requirements.txt
+└── claude.scratchpad.md     # Experiment tracking
 ```
 
-## Quick Start
+## Supported Gestures
 
-### Training
+- 👌 OK sign (`ok`)
+- 👍 Thumbs up (`thumbs_up`)
+- ✌️ Peace sign (`peace`)
+- ✊ Fist (`fist`)
+- 👉 Pointing (`point`)
+- 🤘 Rock sign (`rock`)
+- 👋 Wave (`wave`)
+- ✋ Stop (`stop`)
+- 🖐️ Open hand (`hand`)
+- Background/No hand (`none`)
+
+## Requirements
+
 ```bash
-# Install dependencies
 pip install -r requirements.txt
-
-# Train with default model (YOLO)
-python train.py --config configs/default.yaml
-
-# Train with different model
-python train.py --model tensorflow --config configs/tensorflow.yaml
 ```
 
-### Deployment
+Main dependencies:
+- `ultralytics` - YOLO implementation
+- `opencv-python` - Image processing
+- `gradio` - Web interface
+- `torch` - Deep learning framework
 
-#### Hugging Face
-```bash
-./deploy.sh huggingface
-```
+## Web Interface
 
-#### RunPod
-```bash
-./deploy.sh runpod
-```
+Once deployed to Hugging Face, your model will have:
+- Live webcam input
+- Image upload
+- Real-time hand detection with bounding boxes
+- Gesture classification with confidence scores
+- Interactive demo interface
 
-## Supported Models
+## Tips for Best Results
 
-- YOLOv8 (Object Detection & Classification)
-- MediaPipe Hand Landmark Detection
-- TensorFlow/Keras CNN models
-- PyTorch Vision models
-- Custom hand sign models
+1. **Data Quality**: More diverse data > more epochs
+2. **Balanced Dataset**: Collect similar amounts for each gesture
+3. **Include Negatives**: Collect "none" class (no hands) to reduce false positives
+4. **Test Incrementally**: Train for few epochs first to validate approach
+5. **Monitor Training**: Watch for overfitting (val loss increasing)
 
-## Cost Comparison
+## Next Steps
 
-| Service | GPU | Price/hr | Billing | Best For |
-|---------|-----|----------|---------|----------|
-| RunPod Serverless | Various | From $0.34 | Per millisecond | Sporadic inference |
-| RunPod Pods | RTX 4090 | $0.34 | Per hour | Training |
-| HF Inference | Various | From $0.50 | Per minute | Quick deployment |
-| HF Spaces | T4 | Free/PRO | Monthly | Demos |
+- [ ] Add more gesture types
+- [ ] Implement real-time video processing
+- [ ] Add hand tracking (not just detection)
+- [ ] Create mobile app version
+- [ ] Add gesture sequence recognition
 
 ## License
 
