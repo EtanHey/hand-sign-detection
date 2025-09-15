@@ -1,3 +1,8 @@
 {
-  "outputStyle": "ML Training Pipeline Assistant"
+  "outputStyle": "ML Training Pipeline Assistant",
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)"
+    ]
+  }
 }
