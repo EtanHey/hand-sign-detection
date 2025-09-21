@@ -1,7 +1,8 @@
-# Minimal requirements for Render deployment
-ultralytics>=8.3.0
-fastapi>=0.100.0
-uvicorn>=0.23.0
-python-multipart>=0.0.6
-Pillow>=10.0.0
-# Note: ultralytics will auto-install torch CPU version
+# Optimized for Render deployment (paid tier)
+ultralytics==8.3.0
+torch==2.0.1
+torchvision==0.15.2
+fastapi==0.100.0
+uvicorn==0.23.0
+python-multipart==0.0.6
+Pillow==10.0.0
